@@ -1,22 +1,23 @@
 package com.akkademy
 
-import scala.concurrent.Await
-import scala.concurrent.duration.DurationInt
-import org.scalatest.FunSpecLike
-import org.scalatest.Matchers
+import org.scalatest.concurrent.PatienceConfiguration.Timeout
+import org.scalatest.{FunSpecLike, Matchers}
+import org.scalatest.concurrent.ScalaFutures
+import scala.concurrent.duration._
 
-
-
-class SClientIntegrationSpec extends FunSpecLike with Matchers{
-  val client = new SClient("192.168.56.1:2552")
+class SClientIntegrationSpec extends FunSpecLike with Matchers with ScalaFutures {
+  val client = new SClient("127.0.0.1:2552")
   describe("akkademyDb Scala Client") {
-        describe("set method") {
-            it("should set a value") {
-                client.set("123", new Integer(123))
-                val futureResult = client.get("123")
-                val result = Await.result(futureResult, 60 seconds)
-                result should equal(123)
+    describe("set method") {
+      it("should set a value") {
+        whenReady(client.set("123", "123"), Timeout(1 second)) {
+          r =>
+            whenReady(client.get("123")) {
+              f =>
+                f shouldBe "123"
             }
         }
+      }
+    }
   }
 }
